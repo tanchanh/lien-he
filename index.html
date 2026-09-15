@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thẻ Định Danh Cá Nhân - Dương Tấn Chánh</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-blue: #0066B6;
+      --color-purple: #4020D0;
+      --color-lime: #7FDD0F;
+      --color-green: #009911;
+      --color-orange: #EE6000;
+      --color-red: #FF2040;
+      --color-black: #000000;
+      --color-dark-1: #1A1A1A;
+      --color-dark-2: #262626;
+      --color-gray: #CCCCCC;
+      --color-white: #FFFFFF;
+
+      --theme-navy: #021B35;
+      --theme-brand-blue: #0066B6;
+      --theme-sky-blue: #8DBDF0;
+      --theme-grid-line: #E4EDF5;
+
+      --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      font-size: 1.1rem;
+      font-weight: normal;
+      background-color: var(--color-white);
+      color: var(--theme-navy);
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      word-break: normal;
+      overflow-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Chuẩn cấu trúc DOM hệ thống và ẩn trực quan */
+    .screen-reader-only {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      padding: 0;
+      margin: -2px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* KHUNG THẺ ĐỊNH DANH (CHẠM SÁT ĐỈNH TRÊN, KHÔNG VIỀN ĐEN NGOÀI, GÓC VUÔNG 90 ĐỘ NGUYÊN BẢN) */
+    .id-card-container {
+      position: relative;
+      width: 100%;
+      max-width: 24.5rem;
+      background-color: var(--color-white);
+      box-shadow: none;
+      margin: 0 auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HỆ THỐNG LƯỚI NỀN Ô LỚN PHỦ TOÀN BỘ PHÍA SAU THẺ (KHÔNG BIẾN DẠNG Ô VUÔNG) */
+    .svg-full-card-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* KHU VỰC ĐỈNH THẺ SÁT MÉP TRÊN */
+    .card-top-section {
+      position: relative;
+      width: 100%;
+      height: 16.5rem;
+      background-color: transparent;
+      z-index: 1;
+    }
+
+    .svg-top-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* TÊN CÔNG TY TIDA */
+    .brand-container {
+      position: absolute;
+      top: 1.5rem;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text {
+      font-size: 1.4rem;
+      font-weight: bold;
+      letter-spacing: 0.2rem;
+      color: var(--color-white);
+      text-transform: uppercase;
+    }
+
+    /* KHUNG ẢNH CHÂN DUNG LỤC GIÁC (NGOÀI XANH, TRONG ĐEN) */
+    .hexagon-portrait-box {
+      position: absolute;
+      top: 4.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 11.2rem;
+      height: 13rem;
+      z-index: 3;
+    }
+
+    .hexagon-svg-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .hexagon-image-clip {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      width: 9.7rem;
+      height: 11.5rem;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background-color: var(--theme-navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .user-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-fallback-icon {
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--theme-navy);
+    }
+
+    .avatar-fallback-icon svg {
+      width: 4rem;
+      height: 4rem;
+      fill: var(--theme-sky-blue);
+      opacity: 0.85;
+    }
+
+    /* PHẦN THÂN THẺ */
+    .card-body-section {
+      position: relative;
+      background-color: transparent;
+      padding: 2.2rem 1.25rem 2.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+
+    /* HỌ TÊN CHỦ THẺ */
+    .card-holder-name {
+      position: relative;
+      z-index: 1;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--theme-navy);
+      text-align: center;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.01rem;
+    }
+
+    /* DANH SÁCH LIÊN HỆ ĐỒNG BỘ CĂN GIỮA HAI LỀ */
+    .contact-info-list {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.15rem;
+      width: 100%;
+    }
+
+    .contact-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.3rem;
+      width: 100%;
+    }
+
+    /* TIÊU ĐỀ MỤC: FONT 1.1rem (CHỮ ĐẬM) */
+    .contact-block-label {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--theme-brand-blue);
+      letter-spacing: 0.02rem;
+    }
+
+    /* HÀNG HIỂN THỊ CÙNG DÒNG "GIÁ TRỊ - QR CODE" */
+    .contact-inline-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    /* NỘI DUNG BÊN DƯỚI: FONT 1.1rem (CHỮ THƯỜNG) */
+    .contact-block-link {
+      font-size: 1.1rem;
+      font-style: normal;
+      font-weight: normal;
+      color: var(--theme-navy);
+      text-decoration: none;
+      word-break: break-all;
+      transition: color 0.15s;
+    }
+
+    .contact-block-link:hover, .contact-block-link:focus {
+      color: var(--theme-brand-blue);
+      text-decoration: underline;
+    }
+
+    /* DẤU GẠCH NỐI " - " */
+    .contact-inline-separator {
+      font-size: 1.1rem;
+      font-style: normal;
+      font-weight: normal;
+      color: var(--theme-navy);
+      user-select: none;
+    }
+
+    /* NÚT VĂN BẢN "QR Code" CHUẨN NGỮ NGHĨA */
+    .contact-qr-link {
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-style: normal;
+      font-weight: normal;
+      color: var(--theme-brand-blue);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-decoration: underline;
+      transition: color 0.15s;
+      display: inline-block;
+    }
+
+    .contact-qr-link:hover, .contact-qr-link:focus {
+      color: var(--theme-navy);
+    }
+
+    /* ĐÁY THẺ */
+    .card-footer-section {
+      position: relative;
+      width: 100%;
+      height: 4.6rem;
+      background-color: transparent;
+      overflow: visible;
+      z-index: 2;
+    }
+
+    .svg-footer-ribbon {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* NÚT QR CODE ĐÁY THẺ: THẺ BUTTON CHUẨN, VIỀN 6PX, PADDING 0, KHÔNG BO GÓC */
+    .qr-badge-button {
+      position: absolute;
+      right: 1.5rem;
+      bottom: 0.8rem;
+      width: 5.2rem;
+      height: 5.2rem;
+      aspect-ratio: 1 / 1;
+      background-color: var(--color-white);
+      border: 6px solid var(--theme-brand-blue);
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.35);
+      transition: transform 0.2s, border-color 0.2s;
+      z-index: 5;
+    }
+
+    .qr-badge-button:hover {
+      transform: translateY(-4px);
+      border-color: var(--theme-sky-blue);
+    }
+
+    .qr-code-svg-image {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    /* LỚP PHỦ POPUP: CĂN GIỮA CHUẨN GRID + 100DVH (CHỐNG LỆCH TRỤC TUYỆT ĐỐI) */
+    .qr-modal-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background-color: rgba(2, 27, 53, 0.88);
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .qr-modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* KHUNG THẺ POPUP NẰM CHÍNH GIỮA MÀN HÌNH */
+    .qr-modal-card {
+      position: relative;
+      background-color: var(--color-white);
+      border: 4px solid var(--theme-brand-blue);
+      border-radius: 1.25rem;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 1rem 3rem var(--color-black);
+      width: min(90vw, 20rem);
+      margin: auto;
+      transform: scale(0.85);
+      transition: transform 0.25s ease;
+      box-sizing: border-box;
+    }
+
+    .qr-modal-overlay.open .qr-modal-card {
+      transform: scale(1);
+    }
+
+    /* NÚT ĐÓNG CHUẨN 44px (2.75rem) DỄ BẤM */
+    .qr-modal-close-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 50%;
+      border: 2px solid var(--theme-brand-blue);
+      background-color: var(--theme-navy);
+      color: var(--color-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: background-color 0.2s, transform 0.15s;
+    }
+
+    .qr-modal-close-btn:hover {
+      background-color: var(--color-red);
+      transform: scale(1.08);
+    }
+
+    .qr-modal-close-btn svg {
+      width: 1.4rem;
+      height: 1.4rem;
+      stroke: currentColor;
+    }
+
+    /* TIÊU ĐỀ POPUP */
+    .qr-modal-title {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--theme-navy);
+      margin-top: 0.25rem;
+      margin-bottom: 0.75rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* KHUNG CHỨA QR DÙNG CHUNG CO DÃN ĐA CHIỀU (CHỐNG TRÀN) */
+    .qr-modal-image-wrapper {
+      width: min(68vw, 45vh, 14rem);
+      height: min(68vw, 45vh, 14rem);
+      aspect-ratio: 1 / 1;
+      background-color: var(--color-white);
+      padding: 0.4rem;
+      border: 2px solid var(--theme-grid-line);
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    .qr-modal-image-wrapper svg {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+
+    .qr-modal-action-link {
+      font-size: 1.15rem;
+      font-style: normal;
+      font-weight: bold;
+      color: var(--theme-brand-blue);
+      text-decoration: none;
+      margin-top: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .qr-modal-action-link:hover {
+      text-decoration: underline;
+      color: var(--theme-navy);
+    }
+
+    .qr-modal-hint {
+      font-size: 0.85rem;
+      color: #666666;
+      margin-top: 0.2rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="screen-reader-only">
+    <h1>Thẻ Định Danh - TIDA</h1>
+    <p>Dương Tấn Chánh</p>
+  </header>
+
+  <!-- TOÀN BỘ KHUNG THẺ ĐỊNH DANH -->
+  <main class="id-card-container" aria-label="Thẻ định danh Dương Tấn Chánh">
+    
+    <!-- LỚP HỌA TIẾT LƯỚI PHỦ KÍN 100% NỀN THẺ -->
+    <svg class="svg-full-card-grid" width="100%" height="100%">
+      <defs>
+        <pattern id="card-global-grid" width="42" height="42" patternUnits="userSpaceOnUse">
+          <path d="M 42 0 L 0 0 0 42" fill="none" stroke="#E4EDF5" stroke-width="2"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#card-global-grid)"/>
+    </svg>
+
+    <!-- ĐỈNH THẺ SÁT LỀ TRÊN (Y = 0) -->
+    <div class="card-top-section">
+      <svg class="svg-top-backdrop" viewBox="0 0 376 264" preserveAspectRatio="none">
+        <!-- 1. Mảng xanh Navy chạm đỉnh trên cùng -->
+        <path d="M 0 0 L 376 0 L 376 52 L 188 148 L 0 52 Z" fill="#021B35"/>
+
+        <!-- 2. Hệ thống chấm ma trận: Đúng chuẩn 4 dòng x 2 cột mỗi bên -->
+        <!-- Bên trái (8 chấm) -->
+        <circle cx="34" cy="18" r="2.5" fill="#FFFFFF"/>
+        <circle cx="54" cy="18" r="2.5" fill="#FFFFFF"/>
+        <circle cx="34" cy="32" r="2.5" fill="#FFFFFF"/>
+        <circle cx="54" cy="32" r="2.5" fill="#FFFFFF"/>
+        <circle cx="34" cy="46" r="2.5" fill="#FFFFFF"/>
+        <circle cx="54" cy="46" r="2.5" fill="#FFFFFF"/>
+        <circle cx="34" cy="60" r="2.5" fill="#FFFFFF"/>
+        <circle cx="54" cy="60" r="2.5" fill="#FFFFFF"/>
+
+        <!-- Bên phải (8 chấm) -->
+        <circle cx="322" cy="18" r="2.5" fill="#FFFFFF"/>
+        <circle cx="342" cy="18" r="2.5" fill="#FFFFFF"/>
+        <circle cx="322" cy="32" r="2.5" fill="#FFFFFF"/>
+        <circle cx="342" cy="32" r="2.5" fill="#FFFFFF"/>
+        <circle cx="322" cy="46" r="2.5" fill="#FFFFFF"/>
+        <circle cx="342" cy="46" r="2.5" fill="#FFFFFF"/>
+        <circle cx="322" cy="60" r="2.5" fill="#FFFFFF"/>
+        <circle cx="342" cy="60" r="2.5" fill="#FFFFFF"/>
+
+        <!-- 3. Đường xanh đậm song song mảnh (10px) -->
+        <path d="M 0 52 L 188 148 L 376 52 L 376 62 L 188 158 L 0 62 Z" fill="#0066B6"/>
+
+        <!-- 4. Dải xanh lợt bản rộng (34px) -->
+        <path d="M 0 62 L 188 158 L 376 62 L 376 96 L 188 192 L 0 96 Z" fill="#8DBDF0"/>
+      </svg>
+
+      <!-- TÊN CÔNG TY TIDA -->
+      <div class="brand-container">
+        <span class="brand-text">TIDA</span>
+      </div>
+
+      <!-- KHUNG ẢNH CHÂN DUNG LỤC GIÁC (NGOÀI XANH, TRONG ĐEN) -->
+      <div class="hexagon-portrait-box">
+        
+        <!-- Khối chứa ảnh chân dung đường dẫn cục bộ -->
+        <div class="hexagon-image-clip">
+          <img 
+            id="avatar-image-element"
+            class="user-avatar-img" 
+            src="images/author.jpg" 
+            alt="Chân dung Dương Tấn Chánh"
+            onerror="this.style.display='none'; document.getElementById('avatar-svg-box').style.display='flex';"
+          >
+
+          <!-- Ảnh vector dự phòng khi chưa có ảnh hoặc lỗi đường dẫn -->
+          <div class="avatar-fallback-icon" id="avatar-svg-box">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- VIỀN LỤC GIÁC: NGOÀI XANH (8px), TRONG ĐEN (6px) -->
+        <svg class="hexagon-svg-border" viewBox="0 0 180 208">
+          <!-- 1. Viền xanh ngoài -->
+          <polygon points="90,8 173,56 173,152 90,200 7,152 7,56" fill="none" stroke="#0066B6" stroke-width="8" stroke-linejoin="round"/>
+          <!-- 2. Viền đen trong -->
+          <polygon points="90,14 167,58 167,150 90,194 13,150 13,58" fill="none" stroke="#021B35" stroke-width="6" stroke-linejoin="round"/>
+        </svg>
+
+      </div>
+
+    </div>
+
+    <!-- PHẦN THÂN THẺ (THÔNG TIN ĐỒNG BỘ CĂN GIỮA HAI LỀ, FONT 1.1rem) -->
+    <div class="card-body-section">
+      
+      <!-- HỌ TÊN CHỦ THẺ -->
+      <div class="card-holder-name">Dương Tấn Chánh</div>
+
+      <!-- DANH SÁCH LIÊN HỆ: ĐIỆN THOẠI -> ZALO -> EMAIL -> WEBSITE -->
+      <div class="contact-info-list">
+        
+        <!-- 1. ĐIỆN THOẠI: "0913.150.173  -  QR Code" -->
+        <div class="contact-block">
+          <span class="contact-block-label">Điện thoại:</span>
+          <div class="contact-inline-row">
+            <a href="tel:0913150173" class="contact-block-link" title="Gọi đến số 0913.150.173">0913.150.173</a>
+            <span class="contact-inline-separator">-</span>
+            <button type="button" class="contact-qr-link" data-qr="phone" title="Bấm để xem mã QR Điện thoại">QR Code</button>
+          </div>
+        </div>
+
+        <!-- 2. ZALO: "Mở Zalo  -  QR Code" -->
+        <div class="contact-block">
+          <span class="contact-block-label">Zalo:</span>
+          <div class="contact-inline-row">
+            <a href="https://zaloapp.com/qr/p/qajinelupg0h" target="_blank" rel="noopener noreferrer" class="contact-block-link" title="Mở liên kết Zalo (Mở tab mới)">Mở Zalo</a>
+            <span class="contact-inline-separator">-</span>
+            <button type="button" class="contact-qr-link" data-qr="zalo" title="Bấm để xem mã QR Zalo">QR Code</button>
+          </div>
+        </div>
+
+        <!-- 3. EMAIL (MỞ CỬA SỔ MỚI) -->
+        <div class="contact-block">
+          <span class="contact-block-label">Email:</span>
+          <a href="mailto:chanh.rebirth026@aleeas.com" target="_blank" rel="noopener noreferrer" class="contact-block-link" title="Gửi thư đến chanh.rebirth026@aleeas.com (Mở tab mới)">chanh.rebirth026@aleeas.com</a>
+        </div>
+
+        <!-- 4. WEBSITE (CHỈ CÒN DUY NHẤT 1 WEBSITE, MỞ CỬA SỔ MỚI) -->
+        <div class="contact-block">
+          <span class="contact-block-label">Website:</span>
+          <a href="https://app.tanchanh.workers.dev" target="_blank" rel="noopener noreferrer" class="contact-block-link" title="Truy cập website https://app.tanchanh.workers.dev (Mở tab mới)">app.tanchanh.workers.dev</a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ĐÁY THẺ (RUY BĂNG & NÚT BẤM PHÓNG TO MÃ QR ĐIỆN THOẠI) -->
+    <div class="card-footer-section">
+      <svg class="svg-footer-ribbon" viewBox="0 0 376 74" preserveAspectRatio="none">
+        <!-- 1. Dải xanh lợt bản rộng (16px) -->
+        <rect y="0" width="376" height="16" fill="#8DBDF0"/>
+        <!-- 2. Đường xanh đậm mảnh song song (8px) -->
+        <rect y="16" width="376" height="8" fill="#0066B6"/>
+        <!-- 3. Khối xanh Navy đáy thẻ -->
+        <rect y="24" width="376" height="50" fill="#021B35"/>
+      </svg>
+
+      <!-- NÚT QR CODE MỚI (MA TRẬN 33x33): BUTTON CHUẨN, VIỀN 6PX, PADDING 0, KHÔNG BO GÓC -->
+      <button type="button" class="qr-badge-button" id="btn-footer-qr" aria-label="Phóng to mã QR" title="Bấm để phóng to mã QR">
+        <svg class="qr-code-svg-image" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33">
+          <rect x="0" y="0" width="33" height="33" fill="#ffffff"/>
+          <path d="M2,2h7v1h-7z M10,2h1v2h-1z M14,2h2v1h-2z M17,2h1v1h-1z M20,2h3v2h-3z M24,2h7v1h-7z M2,3h1v6h-1z M8,3h1v6h-1z M15,3h1v1h-1z M24,3h1v6h-1z M30,3h1v6h-1z M4,4h3v3h-3z M12,4h1v2h-1z M14,4h1v5h-1z M18,4h2v1h-2z M22,4h1v3h-1z M26,4h3v3h-3z M10,5h1v1h-1z M13,5h1v1h-1z M16,5h2v2h-2z M20,5h1v1h-1z M11,6h1v1h-1z M18,6h2v1h-2z M12,7h2v1h-2z M15,7h1v1h-1z M19,7h1v1h-1z M21,7h1v1h-1z M3,8h5v1h-5z M10,8h1v2h-1z M12,8h1v1h-1z M16,8h1v1h-1z M18,8h1v2h-1z M20,8h1v1h-1z M22,8h1v1h-1z M25,8h5v1h-5z M11,9h1v1h-1z M13,9h1v1h-1z M17,9h1v1h-1z M21,9h1v2h-1z M2,10h1v2h-1z M4,10h2v1h-2z M7,10h3v1h-3z M15,10h1v3h-1z M19,10h2v1h-2z M24,10h1v2h-1z M27,10h1v3h-1z M29,10h2v1h-2z M4,11h1v3h-1z M6,11h1v1h-1z M9,11h2v1h-2z M12,11h3v1h-3z M16,11h3v1h-3z M20,11h1v3h-1z M25,11h1v4h-1z M29,11h1v3h-1z M8,12h2v1h-2z M21,12h3v1h-3z M26,12h1v1h-1z M2,13h2v2h-2z M5,13h1v1h-1z M10,13h1v1h-1z M12,13h2v3h-2z M17,13h1v2h-1z M22,13h1v3h-1z M8,14h1v1h-1z M11,14h1v1h-1z M16,14h1v2h-1z M19,14h1v4h-1z M24,14h1v4h-1z M26,14h1v1h-1z M3,15h2v1h-2z M6,15h2v1h-2z M9,15h2v1h-2z M14,15h1v2h-1z M18,15h1v3h-1z M20,15h2v3h-2z M27,15h2v1h-2z M2,16h1v3h-1z M4,16h1v3h-1z M6,16h1v4h-1z M8,16h1v1h-1z M11,16h2v1h-2z M15,16h1v1h-1z M23,16h1v5h-1z M25,16h2v2h-2z M28,16h1v1h-1z M7,17h1v1h-1z M9,17h1v2h-1z M13,17h1v8h-1z M16,17h1v6h-1z M22,17h1v3h-1z M29,17h2v1h-2z M5,18h1v1h-1z M8,18h1v1h-1z M10,18h2v1h-2z M14,18h1v4h-1z M20,18h1v2h-1z M25,18h1v2h-1z M28,18h2v1h-2z M11,19h1v1h-1z M17,19h1v1h-1z M2,20h1v1h-1z M4,20h2v2h-2z M7,20h4v1h-4z M15,20h1v3h-1z M19,20h1v3h-1z M21,20h1v4h-1z M27,20h3v1h-3z M6,21h2v1h-2z M9,21h2v1h-2z M12,21h1v1h-1z M17,21h1v1h-1z M20,21h1v1h-1z M24,21h1v2h-1z M28,21h1v2h-1z M30,21h1v2h-1z M3,22h2v1h-2z M8,22h2v1h-2z M22,22h2v1h-2z M25,22h2v1h-2z M10,23h2v1h-2z M20,23h1v2h-1z M22,23h1v4h-1z M26,23h1v6h-1z M29,23h1v2h-1z M2,24h7v1h-7z M10,24h1v2h-1z M16,24h1v2h-1z M18,24h1v1h-1z M24,24h1v1h-1z M27,24h1v2h-1z M2,25h1v6h-1z M8,25h1v6h-1z M11,25h2v1h-2z M15,25h1v1h-1z M17,25h1v3h-1z M19,25h1v4h-1z M21,25h1v1h-1z M28,25h1v5h-1z M4,26h3v3h-3z M13,26h2v1h-2z M20,26h1v5h-1z M23,26h3v1h-3z M29,26h2v1h-2z M10,27h1v2h-1z M23,27h2v1h-2z M29,27h1v1h-1z M11,28h2v1h-2z M16,28h1v1h-1z M25,28h1v1h-1z M27,28h1v3h-1z M30,28h1v2h-1z M15,29h1v2h-1z M18,29h1v2h-1z M3,30h5v1h-5z M10,30h4v1h-4z M16,30h1v1h-1z M19,30h1v1h-1z M21,30h5v1h-5z M29,30h1v1h-1z" fill="#000000" shape-rendering="crispEdges"/>
+        </svg>
+      </button>
+
+    </div>
+
+  </main>
+
+  <!-- BẢNG PHÓNG TO MÃ QR DÙNG CHUNG CĂN GIỮA TUYỆT ĐỐI BẰNG CSS GRID + 100DVH -->
+  <div class="qr-modal-overlay" id="qr-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="qr-modal-card">
+      <button type="button" class="qr-modal-close-btn" id="btn-close-qr" aria-label="Đóng bảng mã QR">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="3">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- TIÊU ĐỀ TỰ ĐỘNG THAY ĐỔI THEO LOẠI QR -->
+      <div class="qr-modal-title" id="modal-qr-title">Mã QR</div>
+
+      <!-- KHUNG CHỨA QR CO DÃN ĐA CHIỀU (CHỐNG TRÀN TUYỆT ĐỐI) -->
+      <div class="qr-modal-image-wrapper" id="modal-qr-svg-target"></div>
+
+      <!-- NÚT HÀNH ĐỘNG BÊN DƯỚI QR TỰ ĐỘNG THAY ĐỔI -->
+      <a href="#" class="qr-modal-action-link" id="modal-qr-action-link"></a>
+      <div class="qr-modal-hint">Đưa camera lại gần để quét trực tiếp</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // 1. Quản lý hiển thị ảnh đại diện và ảnh dự phòng (xử lý triệt để bộ nhớ đệm cache)
+      const avatarImg = document.getElementById("avatar-image-element");
+      const fallbackBox = document.getElementById("avatar-svg-box");
+
+      function showLoadedAvatar() {
+        avatarImg.style.display = "block";
+        fallbackBox.style.display = "none";
+      }
+
+      function showFallbackAvatar() {
+        avatarImg.style.display = "none";
+        fallbackBox.style.display = "flex";
+      }
+
+      avatarImg.addEventListener("load", showLoadedAvatar);
+      avatarImg.addEventListener("error", showFallbackAvatar);
+
+      // Kiểm tra trạng thái tức thì nếu ảnh đã hoàn tất tải từ cache trước khi JS chạy
+      if (avatarImg.complete) {
+        if (avatarImg.naturalWidth > 0) {
+          showLoadedAvatar();
+        } else {
+          showFallbackAvatar();
+        }
+      }
+
+      // 2. DỮ LIỆU ĐỒNG BỘ CỦA HAI MÃ QR CODE (MÃ QR MỚI 33x33 ĐỒNG BỘ CHUẨN XÁC)
+      const qrDataStore = {
+        phone: {
+          title: "Mã QR Điện Thoại",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><rect x="0" y="0" width="33" height="33" fill="#ffffff"/><path d="M2,2h7v1h-7z M10,2h1v2h-1z M14,2h2v1h-2z M17,2h1v1h-1z M20,2h3v2h-3z M24,2h7v1h-7z M2,3h1v6h-1z M8,3h1v6h-1z M15,3h1v1h-1z M24,3h1v6h-1z M30,3h1v6h-1z M4,4h3v3h-3z M12,4h1v2h-1z M14,4h1v5h-1z M18,4h2v1h-2z M22,4h1v3h-1z M26,4h3v3h-3z M10,5h1v1h-1z M13,5h1v1h-1z M16,5h2v2h-2z M20,5h1v1h-1z M11,6h1v1h-1z M18,6h2v1h-2z M12,7h2v1h-2z M15,7h1v1h-1z M19,7h1v1h-1z M21,7h1v1h-1z M3,8h5v1h-5z M10,8h1v2h-1z M12,8h1v1h-1z M16,8h1v1h-1z M18,8h1v2h-1z M20,8h1v1h-1z M22,8h1v1h-1z M25,8h5v1h-5z M11,9h1v1h-1z M13,9h1v1h-1z M17,9h1v1h-1z M21,9h1v2h-1z M2,10h1v2h-1z M4,10h2v1h-2z M7,10h3v1h-3z M15,10h1v3h-1z M19,10h2v1h-2z M24,10h1v2h-1z M27,10h1v3h-1z M29,10h2v1h-2z M4,11h1v3h-1z M6,11h1v1h-1z M9,11h2v1h-2z M12,11h3v1h-3z M16,11h3v1h-3z M20,11h1v3h-1z M25,11h1v4h-1z M29,11h1v3h-1z M8,12h2v1h-2z M21,12h3v1h-3z M26,12h1v1h-1z M2,13h2v2h-2z M5,13h1v1h-1z M10,13h1v1h-1z M12,13h2v3h-2z M17,13h1v2h-1z M22,13h1v3h-1z M8,14h1v1h-1z M11,14h1v1h-1z M16,14h1v2h-1z M19,14h1v4h-1z M24,14h1v4h-1z M26,14h1v1h-1z M3,15h2v1h-2z M6,15h2v1h-2z M9,15h2v1h-2z M14,15h1v2h-1z M18,15h1v3h-1z M20,15h2v3h-2z M27,15h2v1h-2z M2,16h1v3h-1z M4,16h1v3h-1z M6,16h1v4h-1z M8,16h1v1h-1z M11,16h2v1h-2z M15,16h1v1h-1z M23,16h1v5h-1z M25,16h2v2h-2z M28,16h1v1h-1z M7,17h1v1h-1z M9,17h1v2h-1z M13,17h1v8h-1z M16,17h1v6h-1z M22,17h1v3h-1z M29,17h2v1h-2z M5,18h1v1h-1z M8,18h1v1h-1z M10,18h2v1h-2z M14,18h1v4h-1z M20,18h1v2h-1z M25,18h1v2h-1z M28,18h2v1h-2z M11,19h1v1h-1z M17,19h1v1h-1z M2,20h1v1h-1z M4,20h2v2h-2z M7,20h4v1h-4z M15,20h1v3h-1z M19,20h1v3h-1z M21,20h1v4h-1z M27,20h3v1h-3z M6,21h2v1h-2z M9,21h2v1h-2z M12,21h1v1h-1z M17,21h1v1h-1z M20,21h1v1h-1z M24,21h1v2h-1z M28,21h1v2h-1z M30,21h1v2h-1z M3,22h2v1h-2z M8,22h2v1h-2z M22,22h2v1h-2z M25,22h2v1h-2z M10,23h2v1h-2z M20,23h1v2h-1z M22,23h1v4h-1z M26,23h1v6h-1z M29,23h1v2h-1z M2,24h7v1h-7z M10,24h1v2h-1z M16,24h1v2h-1z M18,24h1v1h-1z M24,24h1v1h-1z M27,24h1v2h-1z M2,25h1v6h-1z M8,25h1v6h-1z M11,25h2v1h-2z M15,25h1v1h-1z M17,25h1v3h-1z M19,25h1v4h-1z M21,25h1v1h-1z M28,25h1v5h-1z M4,26h3v3h-3z M13,26h2v1h-2z M20,26h1v5h-1z M23,26h3v1h-3z M29,26h2v1h-2z M10,27h1v2h-1z M23,27h2v1h-2z M29,27h1v1h-1z M11,28h2v1h-2z M16,28h1v1h-1z M25,28h1v1h-1z M27,28h1v3h-1z M30,28h1v2h-1z M15,29h1v2h-1z M18,29h1v2h-1z M3,30h5v1h-5z M10,30h4v1h-4z M16,30h1v1h-1z M19,30h1v1h-1z M21,30h5v1h-5z M29,30h1v1h-1z" fill="#000000" shape-rendering="crispEdges"/></svg>',
+          linkText: "0913.150.173",
+          linkHref: "tel:0913150173",
+          target: "_self"
+        },
+        zalo: {
+          title: "Mã QR Zalo",
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33"><rect x="0" y="0" width="33" height="33" fill="#ffffff"/><path d="M2,2h7v1h-7z M10,2h4v2h-4z M16,2h1v3h-1z M18,2h1v1h-1z M24,2h7v1h-7z M2,3h1v6h-1z M8,3h1v6h-1z M15,3h1v2h-1z M20,3h1v3h-1z M24,3h1v6h-1z M30,3h1v6h-1z M4,4h3v3h-3z M13,4h2v2h-2z M17,4h1v2h-1z M22,4h1v2h-1z M26,4h3v3h-3z M10,5h2v1h-2z M19,5h1v3h-1z M11,6h1v1h-1z M16,6h1v4h-1z M21,6h1v1h-1z M12,7h1v4h-1z M14,7h1v2h-1z M3,8h5v1h-5z M10,8h1v2h-1z M18,8h1v2h-1z M20,8h1v1h-1z M22,8h1v7h-1z M25,8h5v1h-5z M15,9h1v2h-1z M17,9h1v1h-1z M21,9h1v2h-1z M2,10h1v1h-1z M4,10h2v1h-2z M7,10h3v1h-3z M11,10h1v3h-1z M13,10h1v1h-1z M19,10h2v1h-2z M24,10h1v1h-1z M27,10h1v3h-1z M29,10h2v1h-2z M3,11h1v1h-1z M5,11h1v3h-1z M17,11h2v1h-2z M23,11h1v2h-1z M25,11h1v5h-1z M29,11h1v3h-1z M2,12h1v1h-1z M6,12h3v1h-3z M12,12h1v2h-1z M14,12h1v1h-1z M16,12h1v1h-1z M18,12h1v1h-1z M20,12h2v1h-2z M26,12h1v1h-1z M3,13h2v2h-2z M9,13h2v1h-2z M13,13h1v5h-1z M15,13h1v1h-1z M17,13h1v2h-1z M20,13h1v2h-1z M7,14h3v1h-3z M14,14h1v2h-1z M24,14h1v4h-1z M26,14h1v1h-1z M2,15h2v1h-2z M5,15h3v1h-3z M12,15h1v1h-1z M15,15h2v1h-2z M18,15h2v3h-2z M21,15h1v1h-1z M23,15h1v3h-1z M27,15h2v1h-2z M3,16h2v1h-2z M6,16h1v1h-1z M8,16h2v1h-2z M16,16h2v1h-2z M26,16h1v4h-1z M28,16h1v1h-1z M2,17h2v1h-2z M7,17h1v2h-1z M11,17h2v1h-2z M15,17h1v1h-1z M20,17h3v1h-3z M25,17h1v2h-1z M29,17h2v1h-2z M2,18h1v1h-1z M5,18h2v1h-2z M8,18h3v1h-3z M14,18h1v1h-1z M18,18h1v1h-1z M20,18h1v2h-1z M28,18h2v1h-2z M4,19h2v1h-2z M9,19h1v3h-1z M11,19h2v1h-2z M15,19h1v1h-1z M23,19h2v1h-2z M29,19h2v1h-2z M2,20h1v1h-1z M5,20h1v3h-1z M7,20h2v1h-2z M11,20h1v3h-1z M13,20h2v2h-2z M17,20h1v2h-1z M19,20h1v2h-1z M25,20h1v1h-1z M27,20h2v1h-2z M12,21h1v1h-1z M18,21h1v3h-1z M20,21h2v1h-2z M23,21h2v2h-2z M28,21h1v2h-1z M30,21h1v2h-1z M3,22h1v1h-1z M7,22h2v1h-2z M10,22h1v4h-1z M14,22h2v3h-2z M21,22h2v1h-2z M25,22h2v1h-2z M16,23h1v1h-1z M22,23h1v4h-1z M26,23h1v6h-1z M29,23h1v2h-1z M2,24h7v1h-7z M17,24h1v3h-1z M20,24h2v1h-2z M24,24h1v1h-1z M27,24h1v2h-1z M2,25h1v6h-1z M8,25h1v6h-1z M11,25h3v1h-3z M28,25h1v5h-1z M4,26h3v3h-3z M11,26h1v1h-1z M14,26h1v1h-1z M16,26h1v2h-1z M18,26h1v1h-1z M20,26h2v1h-2z M23,26h3v1h-3z M29,26h2v1h-2z M10,27h1v2h-1z M12,27h2v1h-2z M19,27h2v3h-2z M29,27h1v1h-1z M12,28h1v1h-1z M17,28h2v1h-2z M21,28h1v1h-1z M24,28h2v1h-2z M27,28h1v3h-1z M30,28h1v2h-1z M13,29h4v1h-4z M18,29h1v1h-1z M3,30h5v1h-5z M10,30h1v1h-1z M15,30h1v1h-1z M22,30h4v1h-4z M29,30h1v1h-1z" fill="#000000" shape-rendering="crispEdges"/></svg>',
+          linkText: "Mở Zalo",
+          linkHref: "https://zaloapp.com/qr/p/qajinelupg0h",
+          target: "_blank"
+        }
+      };
+
+      // 3. KHỞI TẠO DOM POPUP DÙNG CHUNG
+      const modalOverlay = document.getElementById("qr-modal-overlay");
+      const modalTitle = document.getElementById("modal-qr-title");
+      const modalSvgTarget = document.getElementById("modal-qr-svg-target");
+      const modalActionLink = document.getElementById("modal-qr-action-link");
+      const btnCloseQr = document.getElementById("btn-close-qr");
+      const btnFooterQr = document.getElementById("btn-footer-qr");
+
+      // 4. HÀM MỞ POPUP DÙNG CHUNG DUY NHẤT (DRY & BẢO MẬT TUYỆT ĐỐI)
+      function openQrModal(type) {
+        const data = qrDataStore[type] || qrDataStore.phone;
+        modalTitle.textContent = data.title;
+        modalSvgTarget.innerHTML = data.svg;
+        modalActionLink.textContent = data.linkText;
+        modalActionLink.href = data.linkHref;
+        modalActionLink.target = data.target;
+
+        // Tự động gán bảo mật chống Tabnabbing khi mở tab mới
+        modalActionLink.rel = data.target === "_blank" ? "noopener noreferrer" : "";
+
+        modalOverlay.classList.add("open");
+        modalOverlay.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden"; // Khóa cuộn trang nền chống giật
+      }
+
+      function closeQrModal() {
+        modalOverlay.classList.remove("open");
+        modalOverlay.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = ""; // Khôi phục cuộn bình thường
+      }
+
+      // Gán sự kiện mở Popup cho các nút "QR Code" trên thân thẻ
+      document.querySelectorAll(".contact-qr-link").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const type = button.getAttribute("data-qr");
+          openQrModal(type);
+        });
+      });
+
+      // Gán sự kiện mở nhanh QR cho nút button ở góc đáy thẻ (native button tự hỗ trợ bàn phím)
+      btnFooterQr.addEventListener("click", function () {
+        openQrModal("phone");
+      });
+
+      // Đóng Popup bằng nút X, bấm ra ngoài khoảng tối hoặc bấm ESC
+      btnCloseQr.addEventListener("click", closeQrModal);
+      modalOverlay.addEventListener("click", function (e) {
+        if (e.target === modalOverlay) {
+          closeQrModal();
+        }
+      });
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && modalOverlay.classList.contains("open")) {
+          closeQrModal();
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
