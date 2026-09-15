@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thẻ Định Danh Cá Nhân - Dương Tấn Chánh</title>
+  <title>Danh Thiếp - Dương Tấn Chánh</title>
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -46,19 +46,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-
-    /* Chuẩn cấu trúc DOM hệ thống và ẩn trực quan */
-    .screen-reader-only {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      padding: 0;
-      margin: -2px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
     }
 
     /* KHUNG THẺ ĐỊNH DANH (CHẠM SÁT ĐỈNH TRÊN, KHÔNG VIỀN ĐEN NGOÀI, GÓC VUÔNG 90 ĐỘ NGUYÊN BẢN) */
@@ -482,13 +469,8 @@
 </head>
 <body>
 
-  <header class="screen-reader-only">
-    <h1>Thẻ Định Danh - TIDA</h1>
-    <p>Dương Tấn Chánh</p>
-  </header>
-
-  <!-- TOÀN BỘ KHUNG THẺ ĐỊNH DANH -->
-  <main class="id-card-container" aria-label="Thẻ định danh Dương Tấn Chánh">
+  <!-- TOÀN BỘ KHUNG THẺ ĐỊNH DANH (BẮT ĐẦU TRỰC TIẾP, KHÔNG THẺ ẨN THỪA) -->
+  <main class="id-card-container" aria-label="Danh thiếp Dương Tấn Chánh">
     
     <!-- LỚP HỌA TIẾT LƯỚI PHỦ KÍN 100% NỀN THẺ -->
     <svg class="svg-full-card-grid" width="100%" height="100%">
@@ -549,7 +531,6 @@
             class="user-avatar-img" 
             src="images/author.jpg" 
             alt="Chân dung Dương Tấn Chánh"
-            onerror="this.style.display='none'; document.getElementById('avatar-svg-box').style.display='flex';"
           >
 
           <!-- Ảnh vector dự phòng khi chưa có ảnh hoặc lỗi đường dẫn -->
@@ -628,7 +609,7 @@
         <rect y="24" width="376" height="50" fill="#021B35"/>
       </svg>
 
-      <!-- NÚT QR CODE MỚI (MA TRẬN 33x33): BUTTON CHUẨN, VIỀN 6PX, PADDING 0, KHÔNG BO GÓC -->
+      <!-- NÚT QR CODE MỚI (MA TRẬN 33x33): BUTTON CHUẨN, VIỀN 6PX, PADDING 0, GÓC VUÔNG PHẲNG -->
       <button type="button" class="qr-badge-button" id="btn-footer-qr" aria-label="Phóng to mã QR" title="Bấm để phóng to mã QR">
         <svg class="qr-code-svg-image" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33">
           <rect x="0" y="0" width="33" height="33" fill="#ffffff"/>
@@ -666,7 +647,7 @@
     (function () {
       "use strict";
 
-      // 1. Quản lý hiển thị ảnh đại diện và ảnh dự phòng (xử lý triệt để bộ nhớ đệm cache)
+      // 1. Quản lý hiển thị ảnh đại diện và ảnh dự phòng (bắt trọn vẹn bộ nhớ đệm cache)
       const avatarImg = document.getElementById("avatar-image-element");
       const fallbackBox = document.getElementById("avatar-svg-box");
 
@@ -683,7 +664,7 @@
       avatarImg.addEventListener("load", showLoadedAvatar);
       avatarImg.addEventListener("error", showFallbackAvatar);
 
-      // Kiểm tra trạng thái tức thì nếu ảnh đã hoàn tất tải từ cache trước khi JS chạy
+      // Kiểm tra tức thì trạng thái nạp ảnh từ cache
       if (avatarImg.complete) {
         if (avatarImg.naturalWidth > 0) {
           showLoadedAvatar();
@@ -692,7 +673,7 @@
         }
       }
 
-      // 2. DỮ LIỆU ĐỒNG BỘ CỦA HAI MÃ QR CODE (MÃ QR MỚI 33x33 ĐỒNG BỘ CHUẨN XÁC)
+      // 2. DỮ LIỆU ĐỒNG BỘ CỦA HAI MÃ QR CODE (MA TRẬN 33x33 SẮC NÉT)
       const qrDataStore = {
         phone: {
           title: "Mã QR Điện Thoại",
